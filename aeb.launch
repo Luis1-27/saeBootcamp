@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+ <!-- TO-DO: Bring up the simulator and the code -->
+ 
+   <include file="$(find race)/launch/f1_tenth.launch">
+   </include>
+
+   <node pkg="automatic_emergency_braking" type="sae_aeb.py" name="AEB">
+   </node>
+  
+</launch>
