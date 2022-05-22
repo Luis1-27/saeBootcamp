@@ -2,11 +2,12 @@
 <launch>
 
  <!-- TO-DO: Bring up the simulator and the code -->
- 
-   <include file="$(find race)/launch/f1_tenth.launch">
-   </include>
+  <include file="$(find racecar_gazebo)/launch/racecar.launch">
+    <!--<arg name="world_name" value="racecar"/>-->
+    <arg name="world_name" value="racecar_wall"/>
 
-   <node pkg="automatic_emergency_braking" type="sae_aeb.py" name="AEB">
-   </node>
+  </include>
+  <node pkg="automatic_emergency_braking" name="AEB" type="sae_aeb.py" output="screen"/>
+
   
 </launch>
