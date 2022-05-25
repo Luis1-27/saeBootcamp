@@ -14,12 +14,12 @@ import pdb
 # Vehicle parameters
 ANGLE_RANGE = 270 				# Hokuyo 10LX has 270 degrees scan
 DISTANCE_RIGHT_THRESHOLD = 0.5 	# (m)
-VELOCITY = 0.2 					# meters per second
+VELOCITY = 0.8					# meters per second
 FREQUENCY = 10	# Hz
 
 # Controller parameters
-kp = 0.9
-kd = 0.1
+kp = 0.2
+kd = 1.2
 
 pub = rospy.Publisher('/vesc/ackermann_cmd_mux/input/teleop', AckermannDriveStamped, queue_size=1)
 
@@ -32,14 +32,14 @@ def control(error):
 	global kd
 	global VELOCITY
     
-    velocity = VELOCITY
+	velocity = VELOCITY
 	# TO-DO: Implement controller
 	# ---
 	steering_angle = kp * error
 	# ---
 	
 	# Calculating velocity compensation. Uncomment this when other part of the code works. Absolute is used so that irrespective of steering angle direction, we want the velocity to reduce. If the steering angle is negative direction but abs is NOT used then final velocity will be greater than the vehicle max.
-	# velocity = VELOCITY - abs(kd * steering_angle)
+	velocity = VELOCITY - abs(kd * steering_angle)
 
 	# Set maximum thresholds for steering angles
 	if steering_angle > 0.5:
@@ -103,19 +103,15 @@ def distance(angle_side, angle_lookahead, data, direction = 'right'):
 	
 	alpha = math.atan(numerator_alpha/denominator_alpha)
 	
-	dist_pred = VELOCITY/FREQUENCY # <--------------------------need to update velocity for high speeds if time permits
+	dist_pred = speed/FREQUENCY # <--------------------------need to update velocity for high speeds if time permits
 	distance_r = distance_b * math.cos(alpha) + dist_pred * math.sin(alpha)
 	# ---
 
 	print(f"Distance from {direction} wall : {distance_r}")
 
 	# Calculate error
-	error = distance_b - distance_r
+	error = DISTANCE_RIGHT_THRESHOLD - distance_r
 	
-	# The below code is to steer into the right wall if the car keeps going left above the threshold.
-    # Also need to figure out how below code need to be adjusted if running the code for following center line
-	if distance_r > DISTANCE_RIGHT_THRESHOLD:
-		error = -error*0.5   # Need to adjust this 0.5 multiplier as well. This multiplier is to slowly bring the car back into the right wall DISTANCE_RIGHT_THRESHOLD
 	print(f"Distance Error from {direction} wall : {error}")
 
 	return error, distance
@@ -123,15 +119,15 @@ def distance(angle_side, angle_lookahead, data, direction = 'right'):
 
 def follow_center(angle_right,angle_lookahead_right, data):
 
-	angle_lookahead_left = 180 + angle_right
-	angle_left = 180 - angle_lookahead_right 
+	angle_lookahead_left = abs(angle_lookahead_right)
+	angle_left = abs(angle_right)
 
 	er, dr = distance(angle_right, angle_lookahead_right, data, 'right')
 	el, dl = distance(angle_left, angle_lookahead_left, data, 'left')
 
 	# Find Centerline error
 	# ---
-
+	centerline_error = er - el
 	# ---
 
 	print("Centerline error = %f " % centerline_error)
@@ -142,13 +138,13 @@ def callback(data):
 
 	# Pick two rays at two angles
 	angle_right = -90 # Extreme right is -90 degrees
-	angle_lookahead = -60 # 30 degrees from extreme right
+	angle_lookahead = -40 # 40 degrees from extreme right
 
 	# To follow right wall
-	er, dr = distance(angle_right,angle_lookahead, data)
+	#er, dr = distance(angle_right,angle_lookahead, data)
 
 	# To follow the centerline
-	#ec = follow_center(angle_right,angle_lookahead, data)
+	er = follow_center(angle_right,angle_lookahead, data)
 
 	control(er)
 	
