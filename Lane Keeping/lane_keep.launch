@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+ <!-- TO-DO: Bring up the simulator and the code -->
+  <include file="$(find racecar_gazebo)/launch/racecar.launch">
+    <arg name="world_name" value="lane_keep"/>
+
+  </include>
+  <node pkg="lane_keeping" name="LK" type="simple_lane_keep.py" output="screen"/>
+
+  
+</launch>
