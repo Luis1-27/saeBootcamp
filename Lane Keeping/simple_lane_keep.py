@@ -22,7 +22,7 @@ def canny(image):
     # ---
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0)
-    canny = cv2.Canny(blur, 50, 200, None, 3)
+    canny = cv2.Canny(blur, threshold1=50, threshold2=200, apertureSize=3)
     # ---
     return canny
 
@@ -70,7 +70,7 @@ def camera_callback(data):
     houghP = cv2.cvtColor(cropped_image, cv2.COLOR_GRAY2BGR)
 
     # Extract the Hough Lines
-    lines = cv2.HoughLinesP(cropped_image, 1, np.pi / 180, 150, None, 0, 0)
+    lines = cv2.HoughLinesP(cropped_image, rho=1, theta=np.pi / 180, threshold=80, minLineLength=50, maxLineGap=10)
 
 
     # TO-DO: Get and average of the left and right Hough Lines and extract the centerline. 
@@ -81,10 +81,10 @@ def camera_callback(data):
         #msg = AckermannDriveStamped()
         #msg.drive.speed = 1
         #pub.publish(msg)
-    if lines is not None:
-        for i in range(0, len(lines)):
-            l = lines[i][0]
-            cv2.line(houghP, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv2.LINE_AA)
+    for line in lines:
+        x1,y1,x2,y2 = line[0]
+        cv2.line(houghP, (x1,y1), (x2,y2), (0,0,255), 3)
+        
             
     #averaged_lines = average_slope_intercept(cv_image, lines)
 
@@ -114,7 +114,7 @@ def camera_callback(data):
     #print("we got here111")
     # Display converted images
     cv2.imshow('original', cv_image)
-    cv2.imshow('canny',canny_image)
+    #cv2.imshow('canny',canny_image)
     cv2.imshow('ROI',cropped_image)
     cv2.imshow('Hough', houghP)
     cv2.waitKey(1)
@@ -135,4 +135,5 @@ if __name__ == '__main__':
     	rospy.spin()
     # ---
     #vel = AckermannDriveStamped()
+    
     
