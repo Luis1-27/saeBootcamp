@@ -4,13 +4,17 @@
  <!-- TO-DO: Bring up the simulator and the code -->
   <include file="$(find racecar_gazebo)/launch/racecar.launch">
     <arg name="world_name" value="lane_keep"/>
-    <arg name="x_pos" value="1.419605" />
-    <arg name="y_pos" value="-2.719894" />
+    <arg name="x_pos" value="3.519605" />
+    <arg name="y_pos" value="-2.519894" />
     <arg name="angle" value="0" />
     <arg name="run_camera" value="true" />
 
   </include>
-  <node pkg="lane_keeping" name="LK" type="simple_lane_keep.py" output="screen"/>
+  <node pkg="lane_keeping" name="LK" type="test_Luis.py" output="screen"/>
 
+  
+
+    <!--<arg name="x_pos" value="1.419605" />-->
+    <!--<arg name="y_pos" value="-2.719894" />-->
   
 </launch>
