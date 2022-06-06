@@ -82,11 +82,11 @@ def visualize_lines(image, lines):
       
     return lines_visualize, distance
 
-#def get_centerline(lines):
-#   if len(lines)>0:
-#       return np.mean(lines, axis=0, dtype=np.int32)
-#   else:
-#       return None
+def get_centerline(lines):
+   if len(lines)>0:
+       return np.mean(lines, axis=0, dtype=np.int32)
+   else:
+       return None
         
 def camera_callback(data):
     
@@ -113,7 +113,11 @@ def camera_callback(data):
     # Extract the Hough Lines
     hough = cv2.HoughLinesP(cropped_image, rho=1, theta=np.pi / 180, threshold=80, minLineLength=50, maxLineGap=10)
     lines = calculate_lines(cv_image, hough)
-    #centerline = get_centerline(lines)
+    centerline = get_centerline(lines)
+    x1,y1,x2,y2 = centerline
+    desired = math.sqrt((x2-x1)**2+(y2-y1)**2)
+    print(f"desired: {desired}")
+    cv2.line(center, (x1,y1), (x2,y2), (0,0,255),3)
     
    # for line in centerline:
     #    x1,y1,x2,y2 = centerline[0]
@@ -123,6 +127,7 @@ def camera_callback(data):
     cv2.imshow("hough", lines_visualize)
     output = cv2.addWeighted(cv_image, 0.9, lines_visualize, 1,1)
     cv2.imshow("output", output)
+    cv2.imshow("center", center)
     
 
     # TO-DO: Get and average of the left and right Hough Lines and extract the centerline. 
@@ -143,7 +148,7 @@ def camera_callback(data):
 
     # TO-DO: Implement the final controller
     # ---
-    err = dist/2 - 250
+    err = dist/2 - desired
     msg = AckermannDriveStamped()
     msg.drive.speed = 0.3
     msg.drive.steering_angle = -float(err)/100
