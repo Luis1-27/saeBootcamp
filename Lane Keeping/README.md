@@ -1,4 +1,4 @@
-### Week 4: Lane Keeping
+### Week 6: Lane Keeping
 
 ### Instructions
 
