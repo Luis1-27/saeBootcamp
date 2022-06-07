@@ -48,7 +48,7 @@ def average_slope_intercept(image, lines):
     # The angle between the extracted centerline and desired centerline will be the error. 
     # Use cv2.line to display the lines.
     # ---
-    # creat an empty array for left lines and right lines
+    # create an empty array for left lines and right lines
     left = []
     right = []
     for line in lines:
