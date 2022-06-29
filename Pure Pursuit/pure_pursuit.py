@@ -78,13 +78,6 @@ def interpolate(idx):
 	y1=float(waypoints[idx][1])
 	x2=float(waypoints[idx+1][0])
 	y2=float(waypoints[idx+1][1])
-	print(f"idx: {idx}")
-	print(f"x1: {x1}")
-	print(f"x2: {x2}")
-	print(f"y1: {y1}")
-	print(f"y2: {y2}")
-	print(f"xc: {xc}")
-	print(f"yc: {yc}")
 
 
 	###### INTERPOLATION ALGEBRA PART ###########
@@ -92,7 +85,6 @@ def interpolate(idx):
 	
 	# define slope
 	m = ((y2-y1)/(x2-x1))
-	print(f"m: {m}")
 	
 	# defining parts for quadratic equation
 	a = (m**2 + 1)
@@ -100,35 +92,29 @@ def interpolate(idx):
 	b = ((-2*x1*m**2) + (2*m*y1) - (2*m*yc) - (2*xc))
 	
 	c = ((-LOOKAHEAD**2)+((m**2)*(x1**2))-(2*m*x1*y1)+(2*m*x1*yc)+(xc**2)+(y1**2)-(2*y1*yc)+(yc**2))
-	print(f"a: {a}")
-	print(f"b: {b}")
-	print(f"c: {c}")
-	
+
 
 	try :
 		flag = "interpolated pt" # When there are 1 or 2 interpolation points.
 		
+		# Solving the x and y roots using the quadratic pieces above
 		xroot1 = (-b + (math.sqrt((b**2)-4*a*c)))/(2*a)
-		print(f"xroot1: {xroot1}")
-		yroot1 = ((m*xroot1)-(m*x1-y1))
-		print(f"yroot1: {yroot1}")
+		yroot1 = ((m*xroot1)-(m*x1-y1)) 
 		xroot2 = (-b - (math.sqrt((b**2)-4*a*c)))/(2*a)
-		print(f"xroot2: {xroot2}")
 		yroot2 = ((m*xroot2)-(m*x1-y1))
-		print(f"yroot2: {yroot2}")
+
 
 		# Resolve between two possible conflicting solutions
-		distance1 = math.sqrt((xroot1-xc)**2 + (yroot1-yc)**2) 
-		print(f"distance1: {distance1}")
-		distance2 = math.sqrt((xroot2-xc)**2 + (yroot2-yc)**2)
-		print(f"distance2: {distance2}")
-		
+		# Finding the distances between the points and the first waypoint. 
+		distance1 = math.sqrt((xroot1-x1)**2 + (yroot1-y1)**2) 
+		distance2 = math.sqrt((xroot2-x1)**2 + (yroot2-y1)**2)
 		x = xroot1
 		y = yroot1
 		
+		# If the first root is farther away from the first waypoint, lets use the second root
 		if distance1 > distance2:
-		    x=xroot2
-		    y=yroot2
+		   x=xroot2
+		   y=yroot2
 
 
 	except ValueError:
@@ -203,22 +189,20 @@ def follow_waypoints():
 				drive_pub.angle = np.clip(ka*alpha, -0.51, 0.51)
 				
 				# Debug info for Controller 2
-				print("solution :", flag)
-				print("nearest_index",nearest_idx)
-				print("nearest_index @ ", d1)
-				print("next index @ ", d2)
-				print("-------------")
-				if d1 > d2: 
-					print("next index closer than previously nearest index")
-					break
+				#print("solution :", flag)
+				#print("nearest_index",nearest_idx)
+				#print("nearest_index @ ", d1)
+				#print("next index @ ", d2)
+				#print("-------------")
+				#if d1 > d2: 
+				#	print("next index closer than previously nearest index")
+				#	break
 
 			# pure pursuit controller
-			alpha = math.atan2(yc-target_y, xc-target_x) - yaw
+			alpha = math.atan2(target_y-yc, target_x-xc) - yaw
 			delta = math.atan2(2*math.sin(alpha)*WB,LOOKAHEAD)
 			delta = np.clip(delta,-0.51,0.51)
-			
-
-
+                           
 			# publish messages
 			drive_pub.velocity = 1
 			drive_pub.angle = delta
@@ -238,7 +222,7 @@ def follow_waypoints():
 				plt.grid(True)
 				plt.title("Pure Pursuit Control" + str(1))
 				plt.pause(0.001)
-			
+	
 			# prints for debugging
 			print("pure pursuit flag:",pure_pursuit_flag)
 			print("solution :", flag)
