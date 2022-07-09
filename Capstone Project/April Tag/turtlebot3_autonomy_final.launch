@@ -1,0 +1,21 @@
+<launch>
+
+ <include file="$(find aue_finals)/launch/apriltag_continuous_detection.launch"/>
+
+ <node pkg="aue_finals" type="aprilTag_extract.py" name="april_tag_extract">
+ </node>
+ 
+ <node pkg="tb3_opencv" type="burger.py" name="line_following">
+ </node>
+  
+ <node pkg="wall_following" type="sae_wall_following_Capstone.py" name="wall_following">
+ </node>
+
+ <!-- <include file="$(find localization)/launch/turtlebot3_navigation.launch"/> -->
+ <!-- <include file="$(find localization)/launch/movebase_seq.launch"/> -->
+
+</launch>
+
+
+
+

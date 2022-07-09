@@ -7,19 +7,43 @@ import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import String
+
+tagData = ""
+tag0cnt = 0
 
 class LineFollower(object):
     def __init__(self):
         self.bridge_object = CvBridge()
         self.image_sub = rospy.Subscriber("/raspicam_node/image/compressed",CompressedImage,self.camera_callback)
+        self.apriltag_sub = rospy.Subscriber('/chatter', String, self.apriltag_callback)
         self.velocity_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
         self.vel_msg = Twist()
         
+    def apriltag_callback(self,data):
+    
+       global tagData
+        
+       tagData = data 
     
     def camera_callback(self,data):
-        try:
         
-
+     global tagData
+     global tag0cnt
+     
+     print(tagData.data)
+     
+     if tagData.data == "id: [0]":
+        tag0cnt = tag0cnt + 1
+        
+     # if tag 1 or 2 are seen at least once then reset tag 0 counter and stop line following
+     elif (tagData.data == "id: [1]") or (tagData.data == "id: [2]"):  
+        tag0cnt = 0
+        
+     if tag0cnt >= 1:     # if tag 0 is seen at least once increase its counter then run the line following code
+         
+        try:
+                         
             np_arr = np.frombuffer(data.data, np.uint8)
             image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
             height,width,channels = image_np.shape
@@ -68,16 +92,20 @@ class LineFollower(object):
             self.velocity_publisher.publish(self.vel_msg)
             print(f"The error is: {err} pixels")
             print(f"angular.z: {self.vel_msg.angular.z}")
-            
-            	
-            
-            
+           
+           
         except CvBridgeError as e:
-            print(e)
+          print(e)
         cv2.imshow("Original", image_np)
         cv2.imshow("Cropped", hsv)
         cv2.imshow("MASK", mask)
-        cv2.waitKey(1)
+        cv2.waitKey(1) 
+       
+     else:  # if not then close windows, and reset the counter
+       cv2.destroyAllWindows()
+       tag0cnt = 0
+       pass     	  
+        
 
 def main():
     rospy.init_node('line_following_node', anonymous=True)
@@ -87,7 +115,7 @@ def main():
         rospy.spin()
     except KeyboardInterrupt:
         print("Shutting down")
-    cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()

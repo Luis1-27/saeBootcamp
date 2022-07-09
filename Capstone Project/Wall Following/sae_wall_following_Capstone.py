@@ -9,6 +9,7 @@ import sys
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from std_msgs.msg import String
 import pdb
 
 # Vehicle parameters
@@ -29,6 +30,8 @@ pub = rospy.Publisher("/cmd_vel",Twist, queue_size=1)
 error = 0.0
 prev_er = 0.0
 int_prev =  0.0
+tagData = ""
+tag1cnt = 0
 
 
 def control(error):
@@ -161,22 +164,47 @@ def follow_center(angle_right,angle_lookahead_right, data):
 
 def callback(data):
 
-	# Pick two rays at two angles
-	angle_right = -90
-	angle_lookahead = -30
+   global tagData
+   global tag1cnt
+     
+   if tagData.data == "id: [1]":
+      tag1cnt = tag1cnt + 1
+   
+   # if tag 0 or 2 are seen at least once then reset tag 1 cntr and stop line following
+   elif (tagData.data == "id: [0]") or (tagData.data == "id: [2]"):  
+      tag1cnt = 0
+      
+   else:
+      pass
+        
+   if tag1cnt >= 1:     # if tag 0 is seen at least once increase its counter then run the line following code
+     
+      # Pick two rays at two angles
+      angle_right = -90
+      angle_lookahead = -30
 
-	# To follow right wall
-	#er, dr = distance(angle_right,angle_lookahead, data, 'right')
+      # To follow right wall
+      #er, dr = distance(angle_right,angle_lookahead, data, 'right')
 
-	# To follow the centerline
-	ec = follow_center(angle_right,angle_lookahead, data)
+      # To follow the centerline
+      ec = follow_center(angle_right,angle_lookahead, data)
 
-	control(ec)
+      control(ec)
+	
+   else:  
+      tag1cnt = 0
+      pass
 	
 def speed_callback(data):
 	global speed
 	speed = math.sqrt(data.twist.twist.linear.x**2 + data.twist.twist.linear.y**2 + data.twist.twist.linear.z**2)
 	return None
+
+def apriltag_callback(data):
+    
+       global tagData
+        
+       tagData = data
 
 if __name__ == '__main__':
 	print("Wall following started")
@@ -188,6 +216,7 @@ if __name__ == '__main__':
 	while not rospy.is_shutdown():
 		rospy.Subscriber("/scan",LaserScan,callback)
 		rospy.Subscriber("/vesc/odom",Odometry,speed_callback)
+		rospy.Subscriber('/chatter', String, apriltag_callback)
 		rate.sleep()
 	# ---
 		rospy.spin()
