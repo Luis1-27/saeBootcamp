@@ -109,7 +109,7 @@ def callback(image_msg):
 # Initialize node
 rospy.init_node('classify', anonymous=True)
 # Initialize subscriber
-rospy.Subscriber("raspicam_node/image", Image, callback, queue_size = 1, buff_size = 16777216)
+rospy.Subscriber("resnet/image", Image, callback, queue_size = 1, buff_size = 16777216)
 rospy.Subscriber("/chatter", String, apriltag_callback, queue_size = 1)
 predPub = rospy.Publisher("object_recognition", Predictor, queue_size = 1)
 
