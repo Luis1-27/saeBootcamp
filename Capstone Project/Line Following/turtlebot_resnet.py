@@ -60,7 +60,7 @@ def callback(image_msg):
     
     #print(tagData.data)
     
-    if tagData.data == "test":
+    if tagData.data == "id: [0]":
        tag0cnt = tag0cnt + 1
 
        
