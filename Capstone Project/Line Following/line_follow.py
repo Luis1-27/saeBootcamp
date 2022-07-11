@@ -83,7 +83,7 @@ class LineFollower(object):
             Kp = 0.001
             
             print(f"label: {label}, counter: {counter}")
-            if (label == 'street_sign') and (counter == 34):
+            if (label == 'street_sign') and (counter == 65):
                 self.vel_msg.linear.x = 0
                 self.vel_msg.angular.z = 0
                 self.velocity_publisher.publish(self.vel_msg)
