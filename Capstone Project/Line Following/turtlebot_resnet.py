@@ -68,15 +68,14 @@ def callback(image_msg):
     print(pred_string)
     
     label = pred_string[0][0][1] 
-    if label == 'traffic_light':
+    if label == 'street_sign':
         counter = counter+1
 
-    
-    
     ourPred.header.stamp = rospy.Time.now()
     ourPred.label = label
     ourPred.score = counter
     predPub.publish(ourPred)
+    
     
 # Initialize node
 rospy.init_node('classify', anonymous=True)
