@@ -6,6 +6,8 @@ import roslib
 import numpy as np
 import cv2
 import tensorflow as tf
+import rosnode
+import os
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input, decode_predictions
 from std_msgs.msg import String
@@ -58,6 +60,7 @@ def callback(image_msg):
     global tagData
     global tag0cnt
     
+    
     #print(tagData.data)
     
     if tagData.data == "id: [0]":
@@ -68,6 +71,7 @@ def callback(image_msg):
     elif (tagData.data == "id: [1]") or (tagData.data == "id: [2]"):
        tag0cnt = 0
     if tag0cnt >= 1:
+      
       try:    
        
           #Convert image to OpenCV Image
@@ -90,7 +94,7 @@ def callback(image_msg):
           pred_string = decode_predictions(preds, top=1)
           #Print the prediction string
           print(pred_string)
-    
+
           label = pred_string[0][0][1] 
           if label == 'street_sign':
             counter = counter+1
@@ -99,6 +103,15 @@ def callback(image_msg):
           ourPred.label = label
           ourPred.score = counter
           predPub.publish(ourPred)
+          
+          if counter == 34:
+              myNode = rosnode.get_node_names()
+              wanted = '/image_republisher'
+              result = [v for v in myNode if wanted in v]
+              theNode = ' '.join(result)
+              os.system(f"rosnode kill {theNode}")
+              rospy.signal_shutdown("finished with object rec")
+              
       except CvBridgeError as e:
           print(e)
           
