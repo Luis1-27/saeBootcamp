@@ -23,7 +23,7 @@ class LineFollower(object):
         self.bridge_object = CvBridge()
         self.image_sub = rospy.Subscriber("/raspicam_node/image/compressed",CompressedImage,self.camera_callback)
         self.pred_sub = rospy.Subscriber("object_recognition", Predictor, self.pred_callback)
-        self.apriltab_sub = rospy.Subscriber('/chatter', String, self.apriltag_callback)
+        self.apriltag_sub = rospy.Subscriber('/chatter', String, self.apriltag_callback)
         self.velocity_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
         self.vel_msg = Twist()
         
