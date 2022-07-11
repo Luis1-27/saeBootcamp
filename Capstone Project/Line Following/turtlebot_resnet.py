@@ -106,10 +106,8 @@ def callback(image_msg):
           
           if counter == 34:
               myNode = rosnode.get_node_names()
-              wanted = '/image_republisher'
-              result = [v for v in myNode if wanted in v]
-              theNode = ' '.join(result)
-              os.system(f"rosnode kill {theNode}")
+              wanted = '/republish'
+              os.system(f"rosnode kill {wanted}")
               rospy.signal_shutdown("finished with object rec")
               
       except CvBridgeError as e:
