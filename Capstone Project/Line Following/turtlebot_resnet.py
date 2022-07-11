@@ -33,9 +33,20 @@ model = ResNet50(weights='imagenet')
 # Create graph with target size for image
 graph = tf.compat.v1.get_default_graph()
 target_size = (224, 224)
+
+# variable for publisher
 global counter
 counter = 0
 
+#variables for apriltag
+tagData = ''
+tag0cnt = 0
+
+
+def apriltag_callback(data):
+    
+    global tagData
+    tagData = data
 
 # Defining the callback from the subscriber
 def callback(image_msg):
@@ -44,43 +55,62 @@ def callback(image_msg):
     global graph
     global model
     global counter
+    global tagData
+    global tag0cnt
     
+    #print(tagData.data)
+    
+    if tagData.data == "id: [0]":
+       tag0cnt = tag0cnt + 1
 
-    #Convert image to OpenCV Image
-    cv_image = bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
+       
+    #if tag 1 or 2 are seen at least once then reset tag 0 counter and stop line following
+    elif (tagData.data == "id: [1]") or (tagData.data == "id: [2]"):
+       tag0cnt = 0
+    if tag0cnt >= 1:
+      try:    
+       
+          #Convert image to OpenCV Image
+          cv_image = bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
     
-    # Resize image using the target size above
-    cv_image = cv2.resize(cv_image, target_size)
-    # Convert to array
-    np_image = np.asarray(cv_image)
-    # Expand the dimensions 
-    np_image = np.expand_dims(np_image, axis=0)
-    # Convert array to float type
-    np_image = np_image.astype(float)
-    # Preprocess the array
-    np_image = preprocess_input(np_image) 
+          # Resize image using the target size above
+          cv_image = cv2.resize(cv_image, target_size)
+          # Convert to array
+          np_image = np.asarray(cv_image)
+          # Expand the dimensions 
+          np_image = np.expand_dims(np_image, axis=0)
+          # Convert array to float type
+          np_image = np_image.astype(float)
+          # Preprocess the array
+          np_image = preprocess_input(np_image) 
     
-    # Start predicting using the model
-    preds = model.predict(np_image)
-    # Decode the prediction string
-    pred_string = decode_predictions(preds, top=1)
-    #Print the prediction string
-    print(pred_string)
+          # Start predicting using the model
+          preds = model.predict(np_image)
+          # Decode the prediction string
+          pred_string = decode_predictions(preds, top=1)
+          #Print the prediction string
+          print(pred_string)
     
-    label = pred_string[0][0][1] 
-    if label == 'street_sign':
-        counter = counter+1
+          label = pred_string[0][0][1] 
+          if label == 'street_sign':
+            counter = counter+1
 
-    ourPred.header.stamp = rospy.Time.now()
-    ourPred.label = label
-    ourPred.score = counter
-    predPub.publish(ourPred)
-    
-    
+          ourPred.header.stamp = rospy.Time.now()
+          ourPred.label = label
+          ourPred.score = counter
+          predPub.publish(ourPred)
+      except CvBridgeError as e:
+          print(e)
+          
+    else:
+      tag0cnt = 0
+      pass
+         
 # Initialize node
 rospy.init_node('classify', anonymous=True)
 # Initialize subscriber
 rospy.Subscriber("raspicam_node/image", Image, callback, queue_size = 1, buff_size = 16777216)
+rospy.Subscriber("/chatter", String, apriltag_callback, queue_size = 1)
 predPub = rospy.Publisher("object_recognition", Predictor, queue_size = 1)
 
 while not rospy.is_shutdown():
