@@ -41,7 +41,7 @@ class LineFollower(object):
       
       print(tagData.data)
       
-      if tagData == "id: [0]":
+      if tagData.data == "id: [0]":
          tag0cnt = tag0cnt + 1
          
       # if tag 1 or 2 are seen at least once then reset tag 0 counter and stop line following
