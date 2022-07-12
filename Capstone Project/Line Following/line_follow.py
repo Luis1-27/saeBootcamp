@@ -25,7 +25,6 @@ class LineFollower(object):
     def __init__(self):
         self.bridge_object = CvBridge()
         self.image_sub = rospy.Subscriber("/raspicam_node/image/compressed",CompressedImage,self.camera_callback)
-        self.pred_sub = rospy.Subscriber("/object_recognition", Predictor, self.pred_callback)
         self.apriltag_sub = rospy.Subscriber('/chatter', String, self.apriltag_callback)
         self.velocity_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
         self.vel_msg = Twist()
@@ -43,7 +42,7 @@ class LineFollower(object):
       global tag0cnt
       global resnetFlag
       
-      print(tagData.data)
+      #print(tagData.data)
       
       if tagData.data == "id: [0]":
          tag0cnt = tag0cnt + 1
@@ -56,6 +55,7 @@ class LineFollower(object):
         if resnetFlag == False:
             print("got Here!")
             subprocess.Popen("rosrun aue_finals turtlebot_resnet.py", shell = True)
+            self.pred_sub = rospy.Subscriber("/object_recognition", Predictor, self.pred_callback)
             resnetFlag = True
       
         try:
