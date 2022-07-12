@@ -102,6 +102,9 @@ def callback(image_msg):
           ourPred.label = label
           ourPred.score = counter
           predPub.publish(ourPred)
+          
+          if counter == 34:
+              rospy.signal_shutdown("finished with object rec")
               
       except CvBridgeError as e:
           print(e)

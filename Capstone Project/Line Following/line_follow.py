@@ -5,7 +5,7 @@ import rospy
 import cv2
 import numpy as np
 import time
-import threading 
+import subprocess
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import CompressedImage
@@ -19,6 +19,7 @@ counter = 0
 label = ''
 tagData = ""
 tag0cnt = 0
+resnetFlag = False
 
 class LineFollower(object):
     def __init__(self):
@@ -40,6 +41,7 @@ class LineFollower(object):
     
       global tagData
       global tag0cnt
+      global resnetFlag
       
       print(tagData.data)
       
@@ -50,6 +52,11 @@ class LineFollower(object):
       elif (tagData.data == "id: [1]") or (tagData.data == "id: [2]"):
          tag0cnt = 0
       if tag0cnt >= 1:
+        
+        if resnetFlag == False:
+            print("got Here!")
+            subprocess.Popen("rosrun aue_finals turtlebot_resnet.py", shell = True)
+            resnetFlag = True
       
         try:
             
