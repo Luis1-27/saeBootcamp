@@ -7,12 +7,11 @@ import numpy as np
 import cv2
 import tensorflow as tf
 import rosnode
-import os
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input, decode_predictions
 from std_msgs.msg import String
 from std_msgs.msg import Float32
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 from object_recognition.msg import Predictor
 
@@ -75,7 +74,7 @@ def callback(image_msg):
       try:    
        
           #Convert image to OpenCV Image
-          cv_image = bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
+          cv_image = bridge.compressed_imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
     
           # Resize image using the target size above
           cv_image = cv2.resize(cv_image, target_size)
@@ -103,12 +102,6 @@ def callback(image_msg):
           ourPred.label = label
           ourPred.score = counter
           predPub.publish(ourPred)
-          
-          if counter == 34:
-              myNode = rosnode.get_node_names()
-              wanted = '/republish'
-              os.system(f"rosnode kill {wanted}")
-              rospy.signal_shutdown("finished with object rec")
               
       except CvBridgeError as e:
           print(e)
@@ -120,7 +113,7 @@ def callback(image_msg):
 # Initialize node
 rospy.init_node('classify', anonymous=True)
 # Initialize subscriber
-rospy.Subscriber("resnet/image", Image, callback, queue_size = 1, buff_size = 16777216)
+rospy.Subscriber("/raspicam_node/image/compressed", CompressedImage, callback, queue_size = 1, buff_size = 16777216)
 rospy.Subscriber("/chatter", String, apriltag_callback, queue_size = 1)
 predPub = rospy.Publisher("object_recognition", Predictor, queue_size = 1)
 

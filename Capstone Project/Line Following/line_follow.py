@@ -5,11 +5,13 @@ import rospy
 import cv2
 import numpy as np
 import time
+import threading 
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import CompressedImage
 from object_recognition.msg import Predictor
 from std_msgs.msg import String
+
 
 global label
 global counter
@@ -22,7 +24,7 @@ class LineFollower(object):
     def __init__(self):
         self.bridge_object = CvBridge()
         self.image_sub = rospy.Subscriber("/raspicam_node/image/compressed",CompressedImage,self.camera_callback)
-        self.pred_sub = rospy.Subscriber("object_recognition", Predictor, self.pred_callback)
+        self.pred_sub = rospy.Subscriber("/object_recognition", Predictor, self.pred_callback)
         self.apriltag_sub = rospy.Subscriber('/chatter', String, self.apriltag_callback)
         self.velocity_publisher = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
         self.vel_msg = Twist()
@@ -50,14 +52,13 @@ class LineFollower(object):
       if tag0cnt >= 1:
       
         try:
-        
-            np_arr = np.frombuffer(data.data, np.uint8)
-            image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-            height,width,channels = image_np.shape
+            
+            cv_image = self.bridge_object.compressed_imgmsg_to_cv2(data, desired_encoding="bgr8")
+            height,width,channels = cv_image.shape
             
             # crop image
             print(f"height: {height}")
-            crop_img = image_np[int(height-40):int(height)][1:width]
+            crop_img = cv_image[int(height-40):int(height)][1:width]
             
             #convert to hsv
             hsv = cv2.cvtColor(crop_img, cv2.COLOR_BGR2HSV)
@@ -83,7 +84,7 @@ class LineFollower(object):
             Kp = 0.001
             
             print(f"label: {label}, counter: {counter}")
-            if (label == 'street_sign') and (counter == 65):
+            if (label == 'street_sign') and (counter == 30):
                 self.vel_msg.linear.x = 0
                 self.vel_msg.angular.z = 0
                 self.velocity_publisher.publish(self.vel_msg)
@@ -97,10 +98,10 @@ class LineFollower(object):
                 self.velocity_publisher.publish(self.vel_msg)
                 print(f"The error is: {err} pixels")
                 print(f"angular.z: {self.vel_msg.angular.z}")
-               
+                               
         except CvBridgeError as e:
             print(e)
-        cv2.imshow("Original", image_np)
+        cv2.imshow("Original", cv_image)
         cv2.imshow("Cropped", hsv)
         cv2.imshow("MASK", mask)
         cv2.waitKey(1)
