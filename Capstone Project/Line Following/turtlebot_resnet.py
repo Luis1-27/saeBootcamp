@@ -30,7 +30,7 @@ counter = 0
 
 #variables for apriltag
 tagData = ''
-tag0cnt = 0
+tag3cnt = 0
 global startFlag
 startFlag = False
 
