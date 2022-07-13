@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 import tensorflow as tf
 import rosnode
+import time
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input, decode_predictions
 from std_msgs.msg import String
@@ -15,26 +16,12 @@ from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 from object_recognition.msg import Predictor
 
-time.sleep(31)
+time.sleep(40)
 
 ourPred = Predictor()
 
 # Create a bridge between ROS and OpenCV
 bridge = CvBridge()
-# These settings are for GPU options. They are technically not used here.
-# The computer used does not have a GPU. 
-GPU_OPTIONS = tf.compat.v1.GPUOptions(allow_growth=True)
-CONFIG = tf.compat.v1.ConfigProto(inter_op_parallelism_threads=1,intra_op_parallelism_threads=1,gpu_options=GPU_OPTIONS)
-CONFIG.gpu_options.per_process_gpu_memory_fraction = 0.5
-
-# Create tensorflow and keras sessions
-sess = tf.compat.v1.Session(config=CONFIG)
-tf.compat.v1.keras.backend.set_session(sess)
-# Call our trained model
-model = ResNet50(weights='imagenet')
-
-# Create graph with target size for image
-graph = tf.compat.v1.get_default_graph()
 target_size = (224, 224)
 
 # variable for publisher
@@ -44,6 +31,8 @@ counter = 0
 #variables for apriltag
 tagData = ''
 tag0cnt = 0
+global startFlag
+startFlag = False
 
 
 def apriltag_callback(data):
@@ -59,19 +48,36 @@ def callback(image_msg):
     global model
     global counter
     global tagData
-    global tag0cnt
+    global tag3cnt
+    global startFlag
     
     
     #print(tagData.data)
     
-    if tagData.data == "id: [0]":
-       tag0cnt = tag0cnt + 1
+    if tagData.data == "id: [3]":
+       tag3cnt = tag3cnt + 1
 
        
     #if tag 1 or 2 are seen at least once then reset tag 0 counter and stop line following
-    elif (tagData.data == "id: [1]") or (tagData.data == "id: [2]"):
-       tag0cnt = 0
-    if tag0cnt >= 1:
+    elif (tagData.data == "id: [1]") or (tagData.data == "id: [2]") or (tagData.data == "id: [0]"):
+       tag3cnt = 0
+    if tag3cnt >= 1:
+      if startFlag == False:
+            # These settings are for GPU options. They are technically not used here.
+            # The computer used does not have a GPU. 
+            GPU_OPTIONS = tf.compat.v1.GPUOptions(allow_growth=True)
+            CONFIG = tf.compat.v1.ConfigProto(inter_op_parallelism_threads=1,intra_op_parallelism_threads=1,gpu_options=GPU_OPTIONS)
+            CONFIG.gpu_options.per_process_gpu_memory_fraction = 0.5
+
+            # Create tensorflow and keras sessions
+            sess = tf.compat.v1.Session(config=CONFIG)
+            tf.compat.v1.keras.backend.set_session(sess)
+            # Call our trained model
+            model = ResNet50(weights='imagenet')
+
+            # Create graph with target size for image
+            graph = tf.compat.v1.get_default_graph()
+            startFlag = True
       
       try:    
        
@@ -105,14 +111,14 @@ def callback(image_msg):
           ourPred.score = counter
           predPub.publish(ourPred)
           
-          if counter == 34:
+          if counter == 21:
               rospy.signal_shutdown("finished with object rec")
               
       except CvBridgeError as e:
           print(e)
           
     else:
-      tag0cnt = 0
+      tag3cnt = 0
       pass
          
 # Initialize node
