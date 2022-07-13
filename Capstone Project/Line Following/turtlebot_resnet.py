@@ -15,6 +15,8 @@ from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 from object_recognition.msg import Predictor
 
+time.sleep(31)
+
 ourPred = Predictor()
 
 # Create a bridge between ROS and OpenCV
