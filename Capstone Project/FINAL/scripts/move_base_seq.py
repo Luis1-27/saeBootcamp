@@ -17,7 +17,8 @@ class MoveBaseSeq():
     def __init__(self):
 
         rospy.init_node('move_base_sequence')
-        points_seq = [3.55,9.24,0,3.1,10,0,4.2,10.8,0]
+        points_seq = [9.0,3.3,0,9.68,3.63,0,10.2,3.1,0]
+        #points_seq = [10.2,3.1,0]
         # Only yaw angle required (no ratotions around x and y axes) in deg:
         yaweulerangles_seq = [90,0,180]
         #List of goal quaternions:

@@ -1,0 +1,24 @@
+<launch>
+
+ <!-- April Tag Detection -->
+ <include file="$(find aue_finals)/launch/apriltag_continuous_detection.launch"/>
+
+ <!-- April Tag Extraction for State Machine-->
+ <node pkg="aue_finals" type="aprilTag_extract.py" name="april_tag_extract" />
+  
+ <!-- Wall Following -->
+ <node pkg="aue_finals" type="sae_wall_following_Capstone.py" name="wall_following" />
+ 
+ <!-- Line Following -->
+ <node pkg="aue_finals" type="line_follow.py" name="line_following" />
+ <node pkg="aue_finals" type="turtlebot_resnet.py" name="object_recognition" />
+  
+ <!-- SLAM Navigation -->
+ <include file="$(find aue_finals)/launch/turtlebot3_navigation.launch" />
+ <node pkg="aue_finals" type="AprilTagSLAM.py" name="move_destination" />
+
+</launch>
+
+
+
+
