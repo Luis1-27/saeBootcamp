@@ -22,7 +22,7 @@ bridge = CvBridge()
 # These settings are for GPU options. They are technically not used here.
 # The computer used does not have a GPU. 
 GPU_OPTIONS = tf.compat.v1.GPUOptions(allow_growth=True)
-CONFIG = tf.compat.v1.ConfigProto(gpu_options=GPU_OPTIONS)
+CONFIG = tf.compat.v1.ConfigProto(inter_op_parallelism_threads=1,intra_op_parallelism_threads=1,gpu_options=GPU_OPTIONS)
 CONFIG.gpu_options.per_process_gpu_memory_fraction = 0.5
 
 # Create tensorflow and keras sessions
